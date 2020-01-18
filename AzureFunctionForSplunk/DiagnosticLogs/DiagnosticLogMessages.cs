@@ -1,4 +1,4 @@
-//
+﻿//
 // AzureFunctionForSplunkVS
 //
 // Copyright (c) Microsoft Corporation
@@ -24,26 +24,15 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION 
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Host;
-using System.Threading.Tasks;
+using AzureFunctionForSplunk.Common;
 using Microsoft.Extensions.Logging;
 
-namespace AzureFunctionForSplunk
+namespace AzureFunctionForSplunk.DiagnosticLogs
 {
-    public static class EhMetricsExt
+    public class DiagnosticLogMessages : AzMonMessages
     {
-        [FunctionName("EhMetricsExt")]
-        public static async Task Run(
-            [EventHubTrigger("%input-hub-name-metrics%", Connection = "hubConnection", ConsumerGroup = "%consumer-group-metrics%")]string[] messages,
-            [EventHub("%output-hub-name-proxy%", Connection = "outputHubConnection")]IAsyncCollector<string> outputEvents,
-            IBinder blobFaultBinder,
-            IBinder incomingBatchBinder,
-            Binder queueFaultBinder,
-            ILogger log)
+        public DiagnosticLogMessages(ILogger log) : base(log)
         {
-            var runner = new Runner();
-            await runner.Run<MetricMessages, MetricsSplunkEventMessages>(messages, blobFaultBinder, queueFaultBinder, incomingBatchBinder, outputEvents, log);
         }
     }
 }

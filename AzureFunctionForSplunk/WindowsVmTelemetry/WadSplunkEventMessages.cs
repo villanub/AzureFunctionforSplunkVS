@@ -1,4 +1,4 @@
-//
+﻿//
 // AzureFunctionForSplunkVS
 //
 // Copyright (c) Microsoft Corporation
@@ -24,25 +24,41 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION 
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
+using AzureFunctionForSplunk.Common;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using System;
+using System.Collections.Generic;
+using System.Dynamic;
 
-namespace AzureFunctionForSplunk
+namespace AzureFunctionForSplunk.WindowsVmTelemetry
 {
-    public static class EhActivityLogsExt
+    public class WadSplunkEventMessages : SplunkEventMessages
     {
-        [FunctionName("EhActivityLogsExt")]
-        public static async Task Run(
-            [EventHubTrigger("%input-hub-name-activity-log%", Connection = "hubConnection", ConsumerGroup = "%consumer-group-activity-log%")]string[] messages,
-            [EventHub("%output-hub-name-proxy%", Connection = "outputHubConnection")]IAsyncCollector<string> outputEvents,
-            IBinder blobFaultBinder,
-            IBinder incomingBatchBinder,
-            Binder queueFaultBinder, 
-            ILogger log)
+        protected override string CategoryFileName => "";
+
+        public WadSplunkEventMessages(IAsyncCollector<string> outputEvents, ILogger log, ExecutionContext context) : base(outputEvents, log, context)
         {
-            var runner = new Runner();
-            await runner.Run<ActivityLogMessages, ActivityLogsSplunkEventMessages>(messages, blobFaultBinder, queueFaultBinder, incomingBatchBinder, outputEvents, log);
+        }
+
+        public override void Ingest(string[] records)
+        {
+            foreach (var record in records)
+            {
+                var expandoConverter = new ExpandoObjectConverter();
+                var expandoRecord = JsonConvert.DeserializeObject<ExpandoObject>(record, expandoConverter);
+
+                if (((IDictionary<String, Object>)expandoRecord).ContainsKey("category"))
+                {
+                    AzureMonitorMessages.Add(new WadAzMonLog(expandoRecord));
+                }
+                else if (((IDictionary<String, Object>)expandoRecord).ContainsKey("metricName"))
+                {
+                    AzureMonitorMessages.Add(new WadAzMonMetric(expandoRecord));
+                }
+            }
         }
     }
 }

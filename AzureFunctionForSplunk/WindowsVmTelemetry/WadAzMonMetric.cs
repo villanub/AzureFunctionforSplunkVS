@@ -1,4 +1,4 @@
-//
+﻿//
 // AzureFunctionForSplunkVS
 //
 // Copyright (c) Microsoft Corporation
@@ -24,26 +24,35 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION 
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Host;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+using AzureFunctionForSplunk.Common;
+using System;
+using System.Collections.Generic;
 
-namespace AzureFunctionForSplunk
+namespace AzureFunctionForSplunk.WindowsVmTelemetry
 {
-    public static class EhDiagnosticLogsExt
+    public class WadAzMonMetric : AzMonMessage
     {
-        [FunctionName("EhDiagnosticLogsExt")]
-        public static async Task Run(
-            [EventHubTrigger("%input-hub-name-diagnostic-logs%", Connection = "hubConnection", ConsumerGroup = "%consumer-group-diagnostic-logs%")]string[] messages,
-            [EventHub("%output-hub-name-proxy%", Connection = "outputHubConnection")]IAsyncCollector<string> outputEvents,
-            IBinder blobFaultBinder,
-            IBinder incomingBatchBinder,
-            Binder queueFaultBinder,
-            ILogger log)
+        public WadAzMonMetric(dynamic message)
         {
-            var runner = new Runner();
-            await runner.Run<DiagnosticLogMessages, DiagnosticLogsSplunkEventMessages>(messages, blobFaultBinder, queueFaultBinder, incomingBatchBinder, outputEvents, log);
+            Message = message;
+
+            ResourceType = "MICROSOFT.COMPUTE/VIRTUALMACHINES";
+
+            SplunkSourceType = "azwm:compute:vm";
+
+            if (((IDictionary<String, Object>)message).ContainsKey("dimensions"))
+            {
+                var dimensions = message.dimensions;
+                if (((IDictionary<String, Object>)dimensions).ContainsKey("RoleInstance"))
+                {
+                    string theName = message.dimensions.RoleInstance;
+
+                    // if it's there at all, RoleInstance starts with _
+                    if (theName.Length > 1) ResourceName = theName.Substring(1);
+                }
+            }
+
+            AddStandardProperties("azwm");
         }
     }
 }

@@ -24,15 +24,19 @@
 // IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION 
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
-using Microsoft.Azure.WebJobs.Host;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Collections.Generic;
-using Microsoft.Extensions.Logging;
 
-namespace AzureFunctionForSplunk
+namespace AzureFunctionForSplunk.Common
 {
     public abstract class AzMonMessages
     {
+        public AzMonMessages(ILogger log)
+        {
+            Log = log;
+        }
+
         public ILogger Log { get; set; }
 
         public virtual List<string> DecomposeIncomingBatch(string[] messages)
@@ -53,55 +57,11 @@ namespace AzureFunctionForSplunk
 
                         decomposed.Add(stringRecord);
                     }
-                } else
+                }
+                else
                 {
                     Log.LogError("AzMonMessages: invalid message structure, missing 'records'");
                 }
-            }
-
-            return decomposed;
-        }
-
-        public AzMonMessages(ILogger log)
-        {
-            Log = log;
-        }
-
-    }
-
-    public class ActivityLogMessages : AzMonMessages
-    {
-        public ActivityLogMessages(ILogger log) : base(log) { }
-    }
-
-    public class DiagnosticLogMessages : AzMonMessages
-    {
-        public DiagnosticLogMessages(ILogger log) : base(log) { }
-    }
-
-    public class MetricMessages : AzMonMessages
-    {
-        public MetricMessages(ILogger log) : base(log) { }
-    }
-
-    public class WadMessages : AzMonMessages
-    {
-        public WadMessages(ILogger log): base(log) { }
-    }
-
-    public class LadMessages : AzMonMessages
-    {
-        public LadMessages(ILogger log) : base(log) { }
-
-        public override List<string> DecomposeIncomingBatch(string[] messages)
-        {
-            List<string> decomposed = new List<string>();
-
-            foreach (var record in messages)
-            {
-                string stringRecord = record.ToString();
-
-                decomposed.Add(stringRecord);
             }
 
             return decomposed;
