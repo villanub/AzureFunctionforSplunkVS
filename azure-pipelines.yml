@@ -1,11 +1,4 @@
 # Starter pipeline
-- task: AzureFunctionApp@1
-  inputs:
-    azureSubscription: 'Microsoft Azure Enterprise Test 002(c39e4605-fe9c-4bda-a716-739102ebd6ee)'
-    appType: 'functionAppLinux'
-    appName: 'BenSplunk'
-    package: '$(System.DefaultWorkingDirectory)/**/*.zip'
-    runtimeStack: 'DOCKER|microsoft/azure-functions-dotnet-core2.0:2.0'
 # Start with a minimal pipeline that you can customize to build and deploy your code.
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
