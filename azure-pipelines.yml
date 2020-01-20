@@ -8,7 +8,7 @@ trigger:
 
 variables:
   StorageEndpoint: DefaultEndpointsProtocol=https;AccountName=$(StorageAccount);AccountKey=$(StorageAccountKey)
-  EventhubConnection: Endpoint=$(EventhubEndpoint);SharedAccessKeyName=DataReader;SharedAccessKey=$(EventhubSharedAccessKey)
+  EventhubConnection: Endpoint=$(EventhubEndpoint);SharedAccessKeyName=DataReader;SharedAccessKey=$(EventhubSharedAccessKey);EntityPath=test
 
 stages:
 - stage: Build
